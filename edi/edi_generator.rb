@@ -22,8 +22,38 @@ class EdiGenerator < Rails::Generator::NamedBase
     record do |m|
       # instructing generator what to do by process m
       # filename passed into from the user
-      # m.template "model.rb", "app/models/#{file_name}.rb"
-      # m.template "view.html.erb", "app/views/#{file_name}.html.erb"
+
+      if inbound?
+        unless options[:skip_model]
+          m.template "inbound/model.rb", "app/models/#{namespace}/#{class_name}.rb"
+        end
+
+        unless options[:skip_controller]
+          m.template "inbound/index.html.erb", "app/views/#{namespace}/index.html.erb" 
+          m.template "inbound/show.html.erb", "app/views/#{namespace}/show.html.erb"
+          m.template "inbound/controller.rb", "app/controllers/#{namespace}/#{plural_name}.rb"
+        end
+      elsif outbound?
+        unless options[:skip_model]
+          m.template "outbound/model.rb", "app/models/#{namespace}/#{class_name}.rb"
+        end
+
+        unless options[:skip_controller]
+          m.template "outbound/index.html.erb", "app/views/#{namespace}/index.html.erb" 
+          m.template "outbound/show.html.erb", "app/views/#{namespace}/show.html.erb"
+        end
+      else
+        raise "EDI should be either Inbound or Outbound"
+      end
+
+      p namespace
+      p name
+      p plural_name
+      p singular_name
+      p class_name
+      p inbound?
+      p outbound?
+      p @attributes
     end
   end
 
@@ -35,6 +65,19 @@ Creates an EDI, with templates for the Controller, Model, View and Observer.
 
 USAGE: ./script/generate edi EdiName [model_field:value] [options]
     EOS
+  end
+
+  def add_options!(opt)
+    opt.separator ''
+    opt.separator 'Options:'
+    opt.on("--skip-model", "Don't generate a model or migration file.") { |v| options[:skip_model] = v }
+    opt.on("--skip-controller", "Don't generate controller, helper, or views.") { |v| options[:skip_controller] = v }
+    opt.on("--skip-migration", "Don't generate migration file for model.") { |v| options[:skip_migration] = v }
+    opt.on("--skip-timestamps", "Don't add timestamps to migration file.") { |v| options[:skip_timestamps] = v }
+    opt.on("--invert", "Generate all controller actions except these mentioned.") { |v| options[:invert] = v }
+    opt.on("--haml", "Generate HAML views instead of ERB.") { |v| options[:haml] = v }
+    opt.on("--testunit", "Use test/unit for test files.") { options[:test_framework] = :testunit }
+    opt.on("--shoulda", "Use Shoulda for test files.") { options[:test_framework] = :shoulda }
   end
 
   private
@@ -55,16 +98,26 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
     plural_name.camelize
   end
 
+  def api_edi_prefix_given?
+    namespace[/^api\/edi/]
+  end
+
+  def namespace
+    @namespace ||= File.join("api", "edi", @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s) unless api_edi_prefix_given?
+    @namespace ||= @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s
+  end
+
   def inbound?
-    @name["inbound"] && !@name["outbound"]
+    @name[/inbound/i] && !@name[/outbound/i]
   end
 
   def outbound?
-    @name["outbound"] && !@name["inbound"]
+    @name[/outbound/i] && !@name[/inbound/i]
   end
 
   def generate_attributes
     @args[1..-1].each do |arg|
+      # name => type
       @attributes << Rails::Generator::GeneratedAttribute.new(*arg.split(":")) if arg.include? ":"
     end
   end
