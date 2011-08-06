@@ -1,10 +1,10 @@
-# script that is ran by script/generator edi...
-
 class EdiGenerator < Rails::Generator::NamedBase
-  # for copying files into application
   attr_accessor :name, :attributes
 
+  CONTROLLER_ACTIONS = [:show, :index]
+
   def initialize(args, options={})
+
     super
     usage if args.empty?
 
@@ -14,46 +14,29 @@ class EdiGenerator < Rails::Generator::NamedBase
     @attributes = []
     @skipping = []
 
-    generate_skipping
     generate_attributes
   end
 
   def manifest
     record do |m|
-      # instructing generator what to do by process m
-      # filename passed into from the user
+      raise "EDI should be either Inbound or Outbound" unless inbound? || outbound?
 
-      if inbound?
-        unless options[:skip_model]
-          m.template "inbound/model.rb", "app/models/#{namespace}/#{class_name}.rb"
-        end
+      direction = inbound? ? :inbound : :outbound
 
-        unless options[:skip_controller]
-          m.template "inbound/index.html.erb", "app/views/#{namespace}/index.html.erb" 
-          m.template "inbound/show.html.erb", "app/views/#{namespace}/show.html.erb"
-          m.template "inbound/controller.rb", "app/controllers/#{namespace}/#{plural_name}.rb"
-        end
-      elsif outbound?
-        unless options[:skip_model]
-          m.template "outbound/model.rb", "app/models/#{namespace}/#{class_name}.rb"
-        end
-
-        unless options[:skip_controller]
-          m.template "outbound/index.html.erb", "app/views/#{namespace}/index.html.erb" 
-          m.template "outbound/show.html.erb", "app/views/#{namespace}/show.html.erb"
-        end
-      else
-        raise "EDI should be either Inbound or Outbound"
+      unless options[:skip_model]
+        m.directory "app/models/#{namespace}"
+        m.template "#{direction}/model.rb", "app/models/#{namespace}/#{singular_name}.rb"
       end
 
-      p namespace
-      p name
-      p plural_name
-      p singular_name
-      p class_name
-      p inbound?
-      p outbound?
-      p @attributes
+      unless options[:skip_controller]
+        m.directory "app/controllers/#{namespace}" 
+        m.directory "app/views/#{namespace}" 
+
+        CONTROLLER_ACTIONS.each do |action|
+          m.template "#{direction}/#{action}.html.erb", "app/views/#{namespace}/#{action}.html.erb" 
+        end
+        m.template "#{direction}/controller.rb", "app/controllers/#{namespace}/#{controller_name}.rb"
+      end
     end
   end
 
@@ -93,18 +76,28 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
   def class_name
     name.camelize
   end
+  alias_method :model_name, :class_name
 
   def plural_class_name
     plural_name.camelize
   end
 
-  def api_edi_prefix_given?
-    namespace[/^api\/edi/]
+  def controller_name
+    "edi#{edi_code}_controller"
+  end
+
+  def edi_code
+    @edi_code ||= @name[/.*(\d{3,4}).*/i, 1]
   end
 
   def namespace
-    @namespace ||= File.join("api", "edi", @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s) unless api_edi_prefix_given?
-    @namespace ||= @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s
+    @given_namespace ||= @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s
+    @namespace ||= "api/edi/#{@given_namespace}" unless api_edi_prefix_given?
+    @namespace ||= @given_namespace
+  end
+
+  def api_edi_prefix_given?
+    namespace[/^api\/edi/]
   end
 
   def inbound?
@@ -120,9 +113,5 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
       # name => type
       @attributes << Rails::Generator::GeneratedAttribute.new(*arg.split(":")) if arg.include? ":"
     end
-  end
-
-  def generate_skipping
-    @skipping ||= (options.keys.select {|key| key =~ /skip_(.*)/}).map {|key| key[/skip_(.*)/, 1]}
   end
 end
