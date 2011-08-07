@@ -1,5 +1,12 @@
-class Api::Edi::Exel::Clorox::RedPrairie::EdiOutbound944Shipment < EdiOutbound
+module <%= namespace.modulize %>
+class <%= class_name %> < EdiOutbound
+  <% if push? %>
   include ::Edi::Push
+
+  def ca_certificate
+    self.site.edi_configuration.ca_certificate_for_outbound_<%= edi_code %>_data
+  end
+  <% end %>
   belongs_to :unit_shipment, :foreign_key => :source_id
 
   def self.eligible_unit_shipments_for(shipment)
@@ -30,15 +37,6 @@ class Api::Edi::Exel::Clorox::RedPrairie::EdiOutbound944Shipment < EdiOutbound
   def view_model
     self.unit_shipment.try(:shipment)
   end
-
-  # ****************************************************************
-  # start Pushmethods
-
-  def ca_certificate
-    self.site.edi_configuration.ca_certificate_for_outbound_944_data
-  end
-  # ****************************************************************
-  # end Push methods
 
   def date
     self.unit_shipment.shipment.actual_ship_at.try(:strftime, "%Y-%m-%d")

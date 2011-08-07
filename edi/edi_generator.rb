@@ -1,3 +1,11 @@
+# TODO: add --push argument
+
+class String
+  def modulize
+    (self.split('/').map {|mod| mod.camelize}).join('::')
+  end
+end
+
 class EdiGenerator < Rails::Generator::NamedBase
   attr_accessor :name, :attributes
 
@@ -12,7 +20,6 @@ class EdiGenerator < Rails::Generator::NamedBase
     @args = args
     @options = options
     @attributes = []
-    @skipping = []
 
     generate_attributes
   end
