@@ -1,76 +1,29 @@
 module <%= namespace.modulize %>
-class <%= class_name %> < EdiOutbound
-  <% if push? %>
-  include ::Edi::Push
+  class <%= class_name %> < EdiOutbound
+    <% if push? %>
+    include ::Edi::Push
 
-  def ca_certificate
-    self.site.edi_configuration.ca_certificate_for_outbound_<%= edi_code %>_data
-  end
-  <% end %>
-  belongs_to :unit_shipment, :foreign_key => :source_id
+    def ca_certificate
+      self.site.edi_configuration.ca_certificate_for_outbound_<%= edi_code %>_data
+    end
+    <% end %>
 
-  def self.eligible_unit_shipments_for(shipment)
-    shipment.all_unit_shipments.find(:all, :include => [:pallet, :sku],
-      :conditions => ["skus.is_finished_good = :fg AND skus.is_subcomponent = :sub AND pallets.job_id IS NOT NULL", {:fg => true, :sub => false}])
-  end
+    belongs_to :unit_shipment, :foreign_key => :source_id
 
-  def self.view_model
-    "shipments"
-  end
+    def source
+      raise "Implement me!"
+    end
 
-  def prevent_queued_status_no_edi_mapping
-    #overriding to suppress validation
-  end
+    def create_edi_log
+      raise "Implement me!" 
+    end 
 
-  def skip_status_validation
-    @skip_status_validation = true
-  end
+    def self.dropdown_name 
+      raise "Implement me!"
+    end 
 
-  def source
-    self.unit_shipment
-  end
-
-  def set_customer
-    self.customer_id = self.unit_shipment.shipment.customer_id
-  end
-
-  def view_model
-    self.unit_shipment.try(:shipment)
-  end
-
-  def date
-    self.unit_shipment.shipment.actual_ship_at.try(:strftime, "%Y-%m-%d")
-  end
-
-  def job_id
-    self.unit_shipment.pallet.job_id
-  end
-
-  def order_number
-    self.unit_shipment.pallet.job.project.code
-  end
-
-  def pallet_number
-    self.unit_shipment.pallet.number
-  end
-
-  def part_number
-    self.unit_shipment.sku.code
-  end
-
-  def quantity
-    self.unit_shipment.quantity
-  end
-
-  def lot_code
-    self.unit_shipment.lot_code
-  end
-
-  def expiry_date
-    self.unit_shipment.expiry_date
-  end
-
-  def part_uom
-    self.unit_shipment.sku.unit_of_measure
+    def self.label_name 
+      raise "Implement me!"
+    end 
   end
 end

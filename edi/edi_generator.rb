@@ -63,6 +63,7 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
     opt.on("--skip-model", "Don't generate a model or migration file.") { |v| options[:skip_model] = v }
     opt.on("--skip-controller", "Don't generate controller, helper, or views.") { |v| options[:skip_controller] = v }
     opt.on("--skip-migration", "Don't generate migration file for model.") { |v| options[:skip_migration] = v }
+    opt.on("--push", "Conifgure EDI for push.") { |v| options[:push] = v }
     opt.on("--skip-timestamps", "Don't add timestamps to migration file.") { |v| options[:skip_timestamps] = v }
     opt.on("--invert", "Generate all controller actions except these mentioned.") { |v| options[:invert] = v }
     opt.on("--haml", "Generate HAML views instead of ERB.") { |v| options[:haml] = v }
@@ -93,8 +94,16 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
     "edi#{edi_code}_controller"
   end
 
+  def test_helper_path
+    "test/unit/#{@namepace}/test_helper".gsub(/\/?^?\w+(\/|$)/, "../")
+  end
+
   def edi_code
     @edi_code ||= @name[/.*(\d{3,4}).*/i, 1]
+  end
+
+  def push?
+    options[:push]
   end
 
   def namespace
