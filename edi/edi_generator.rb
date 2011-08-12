@@ -1,9 +1,3 @@
-class String
-  def modulize
-    (self.split('/').map {|mod| mod.camelize}).join('::')
-  end
-end
-
 class EdiGenerator < Rails::Generator::NamedBase
   CONTROLLER_ACTIONS = [:show, :index]
 
@@ -64,11 +58,6 @@ USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:va
     opt.on("--skip-controller", "Don't generate controller, helper, or views.") { |v| options[:skip_controller] = v }
     opt.on("--skip-migration", "Don't generate migration file for model.") { |v| options[:skip_migration] = v }
     opt.on("--push", "Conifgure EDI for push.") { |v| options[:push] = v }
-    opt.on("--skip-timestamps", "Don't add timestamps to migration file.") { |v| options[:skip_timestamps] = v }
-    opt.on("--invert", "Generate all controller actions except these mentioned.") { |v| options[:invert] = v }
-    opt.on("--haml", "Generate HAML views instead of ERB.") { |v| options[:haml] = v }
-    opt.on("--testunit", "Use test/unit for test files.") { options[:test_framework] = :testunit }
-    opt.on("--shoulda", "Use Shoulda for test files.") { options[:test_framework] = :shoulda }
   end
 
   def plural_name
@@ -135,3 +124,10 @@ USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:va
     end
   end
 end
+
+class String
+  def modulize
+    (self.split('/').map {|mod| mod.camelize}).join('::')
+  end
+end
+
