@@ -6,9 +6,9 @@ module <%= namespace.modulize %>
     def ca_certificate
       self.site.edi_configuration.ca_certificate_for_outbound_<%= edi_code %>_data
     end
-    <% end %>
 
-    belongs_to :unit_shipment, :foreign_key => :source_id
+    <% end %>
+    # belongs_to :unit_shipment, :foreign_key => :source_id
 
     def source
       raise "Implement me!"

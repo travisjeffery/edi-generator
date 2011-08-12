@@ -1,5 +1,3 @@
-# TODO: add --push argument
-
 class String
   def modulize
     (self.split('/').map {|mod| mod.camelize}).join('::')
@@ -7,13 +5,11 @@ class String
 end
 
 class EdiGenerator < Rails::Generator::NamedBase
-  attr_accessor :name, :attributes
-
   CONTROLLER_ACTIONS = [:show, :index]
 
   def initialize(args, options={})
-
     super
+
     usage if args.empty?
 
     @name = args.first
@@ -28,32 +24,33 @@ class EdiGenerator < Rails::Generator::NamedBase
     record do |m|
       raise "EDI should be either Inbound or Outbound" unless inbound? || outbound?
 
-      direction = inbound? ? :inbound : :outbound
-
       unless options[:skip_model]
         m.directory "app/models/#{namespace}"
         m.template "#{direction}/model.rb", "app/models/#{namespace}/#{singular_name}.rb"
+        m.template "#{direction}/unit_test.rb", "test/unit/#{namespace}/#{singular_name}_test.rb"
       end
 
       unless options[:skip_controller]
         m.directory "app/controllers/#{namespace}" 
         m.directory "app/views/#{namespace}" 
 
-        CONTROLLER_ACTIONS.each do |action|
-          m.template "#{direction}/#{action}.html.erb", "app/views/#{namespace}/#{action}.html.erb" 
+        if outbound?
+          CONTROLLER_ACTIONS.each do |action|
+            m.template "#{direction}/#{action}.html.erb", "app/views/#{namespace}/#{action}.html.erb" 
+          end
         end
+
         m.template "#{direction}/controller.rb", "app/controllers/#{namespace}/#{controller_name}.rb"
+        m.template "#{direction}/functional_test.rb", "test/functional/#{namespace}/#{controller_name}_test.rb"
       end
     end
   end
-
-  protected
 
   def banner 
     <<-EOS
 Creates an EDI, with templates for the Controller, Model, View and Observer.
 
-USAGE: ./script/generate edi EdiName [model_field:value] [options]
+USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:value] [options]
     EOS
   end
 
@@ -71,20 +68,18 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
     opt.on("--shoulda", "Use Shoulda for test files.") { options[:test_framework] = :shoulda }
   end
 
-  private
-
   def plural_name
     name.underscore.pluralize
   end
 
   def singular_name
-    name.underscore
+    "edi_#{direction}#{edi_code}"
   end
 
   def class_name
-    name.camelize
+    singular_name.camelize
   end
-  alias_method :model_name, :class_name
+  # alias_method :model_name, :class_name
 
   def plural_class_name
     plural_name.camelize
@@ -107,13 +102,19 @@ USAGE: ./script/generate edi EdiName [model_field:value] [options]
   end
 
   def namespace
-    @given_namespace ||= @attributes.select {|attr| attr.name == "namespace"}.first.type.to_s
-    @namespace ||= "api/edi/#{@given_namespace}" unless api_edi_prefix_given?
-    @namespace ||= @given_namespace
+    if api_edi_prefix_given?
+      (@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s
+    else
+      "api/edi/#{(@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s}"
+    end
   end
 
   def api_edi_prefix_given?
-    namespace[/^api\/edi/]
+    (@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s =~ /^api\/edi/
+  end
+
+  def direction
+    inbound? ? :inbound : :outbound
   end
 
   def inbound?
