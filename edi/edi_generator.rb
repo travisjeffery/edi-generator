@@ -26,6 +26,8 @@ class EdiGenerator < Rails::Generator::NamedBase
 
       unless options[:skip_model]
         m.directory "app/models/#{namespace}"
+        m.directory "test/unit/#{namespace}"
+
         m.template "#{direction}/model.rb", "app/models/#{namespace}/#{singular_name}.rb"
         m.template "#{direction}/unit_test.rb", "test/unit/#{namespace}/#{singular_name}_test.rb"
       end
@@ -33,6 +35,7 @@ class EdiGenerator < Rails::Generator::NamedBase
       unless options[:skip_controller]
         m.directory "app/controllers/#{namespace}" 
         m.directory "app/views/#{namespace}" 
+        m.directory "test/functional/#{namespace}" 
 
         if outbound?
           CONTROLLER_ACTIONS.each do |action|
