@@ -97,6 +97,10 @@ USAGE: ./script/generate edi EdiName namespace:path/of/namespace [source:edi_sou
     attribute_value("source")
   end
 
+  def edi_generate
+    attribute_value("generate")
+  end
+
   def namespace
     if api_edi_prefix_given?
       (@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s
