@@ -1,15 +1,32 @@
 module <%= namespace.modulize %>
   class <%= class_name %> < EdiOutbound
-    <% if push? %>
+<% if push? %>
     include ::Edi::Push
 
     def ca_certificate
       self.site.edi_configuration.ca_certificate_for_outbound_<%= edi_code %>_data
     end
+<% end %>
 
-    <% end %>
-    # belongs_to :unit_shipment, :foreign_key => :source_id
+<% if edi_source %>
+    belongs_to :<%= edi_source %>, :foreign_key => :source_id
 
+    def source
+      self.<%= edi_source %>
+    end
+
+    def self.view_model
+      "<%= edi_source.pluralize %>"
+    end
+
+    def self.label_name
+      "<%= edi_source.titleize %> -> EDI <%= edi_code %>"
+    end
+
+    def self.dropdown_name
+      "EDI <%= edi_code %>"
+    end
+<% else %>
     def source
       raise "Implement me!"
     end
@@ -25,5 +42,6 @@ module <%= namespace.modulize %>
     def self.label_name 
       raise "Implement me!"
     end 
+<% end %>
   end
 end

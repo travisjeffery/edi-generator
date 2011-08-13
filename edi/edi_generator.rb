@@ -47,7 +47,7 @@ class EdiGenerator < Rails::Generator::NamedBase
     <<-EOS
 Creates an EDI, with templates for the Controller, Model, View and Observer.
 
-USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:value] [options]
+USAGE: ./script/generate edi EdiName namespace:path/of/namespace [source:edi_source] [options]
     EOS
   end
 
@@ -93,6 +93,10 @@ USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:va
     options[:push]
   end
 
+  def edi_source
+    attribute_value("source")
+  end
+
   def namespace
     if api_edi_prefix_given?
       (@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s
@@ -102,7 +106,11 @@ USAGE: ./script/generate edi EdiName namespace:path/of/namespace [model_field:va
   end
 
   def api_edi_prefix_given?
-    (@attributes.select {|attr| attr.name == "namespace"}).first.type.to_s =~ /^api\/edi/
+    attribute_value("namespace") =~ /^api\/edi/
+  end
+
+  def attribute_value attribute
+    (@attributes.select {|attr| attr.name == attribute}).first.type.to_s
   end
 
   def direction
