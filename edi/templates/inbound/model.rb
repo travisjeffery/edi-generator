@@ -15,8 +15,6 @@ module <%= namespace.modulize %>
       raise "Implement me!"
     end
 <% else %>
-    # belongs_to :<%= edi_generate %>, :foreign_key => 'object_id'
-
     def object
       raise "Implement me!"
     end

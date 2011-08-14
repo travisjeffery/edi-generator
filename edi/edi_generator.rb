@@ -48,6 +48,12 @@ class EdiGenerator < Rails::Generator::NamedBase
 Creates an EDI, with templates for the Controller, Model, View and Observer.
 
 USAGE: ./script/generate edi EdiName namespace:path/of/namespace [source:edi_source] [options]
+
+EXAMPLES:
+
+Outbound: ./script/generate edi edioutbound007 namespace:belvia/hershey/sap source:receipt
+
+Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap generate:receipt
     EOS
   end
 
