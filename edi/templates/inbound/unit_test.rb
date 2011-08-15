@@ -1,8 +1,7 @@
 require File.expand_path('../../../../../../../test_helper', __FILE__)
 require 'nokogiri'
 
-module Api::Edi::Belvika::Hershey::Sap
-  class Edi944ControllerTest < ActionController::TestCase
+class <%= namespace.modulize %>::Edi944ControllerTest < ActionController::TestCase
 
   def setup 
     login 
