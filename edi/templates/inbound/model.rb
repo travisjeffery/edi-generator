@@ -1,14 +1,14 @@
 module <%= namespace.modulize %>
   class <%= class_name %> < EdiInbound
-<%= if edi_generate %>
-    belongs_to :<%= edi_generate %>, :foreign_key => 'object_id'
+<% if edi_for %>
+    belongs_to :<%= edi_for %>, :foreign_key => 'object_id'
 
     def object
-      self.<%= edi_generate %>
+      self.<%= edi_for %>
     end
 
     def object=(obj)
-      self.<%= edi_generate %> = obj
+      self.<%= edi_for %> = obj
     end
 
     def process_edi(params)

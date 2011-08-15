@@ -1,3 +1,5 @@
+$VERBOSE = nil
+
 class EdiGenerator < Rails::Generator::NamedBase
   CONTROLLER_ACTIONS = [:show, :index]
 
@@ -6,10 +8,8 @@ class EdiGenerator < Rails::Generator::NamedBase
 
     usage if args.empty?
 
-    @name = args.first
     @args = args
     @options = options
-    @attributes = []
 
     generate_attributes
   end
@@ -77,7 +77,6 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
   def class_name
     singular_name.camelize
   end
-  # alias_method :model_name, :class_name
 
   def plural_class_name
     plural_name.camelize
@@ -91,12 +90,28 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
     "test/unit/#{@namepace}/test_helper".gsub(/\/?^?\w+(\/|$)/, "../")
   end
 
+  def edi_name
+    if @args.first =~ /^edi/i
+      @args.first
+    else
+      "edi#{@args.first}"
+    end
+  end
+
   def edi_code
-    @edi_code ||= @name[/.*(\d{3,4}).*/i, 1]
+    @edi_code ||= edi_name[/.*(\d{3,4}).*/i, 1]
   end
 
   def push?
     options[:push]
+  end
+
+  def edi_for
+    if inbound?
+      edi_generate || edi_source
+    else
+      edi_source || edi_generate 
+    end
   end
 
   def edi_source
@@ -116,11 +131,16 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
   end
 
   def api_edi_prefix_given?
-    attribute_value("namespace") =~ /^api\/edi/
+    attribute_value("namespace") =~ /^\/?api\/edi/
   end
 
   def attribute_value attribute
-    (@attributes.select {|attr| attr.name == attribute}).first.type.to_s
+    attribute = (@attributes.select {|attr| attr.name == attribute}).first
+    if !attribute.nil?
+      attribute.type.to_s
+    else
+      nil
+    end
   end
 
   def direction
@@ -128,14 +148,15 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
   end
 
   def inbound?
-    @name[/inbound/i] && !@name[/outbound/i]
+    edi_name[/inbound/i] && !edi_name[/outbound/i]
   end
 
   def outbound?
-    @name[/outbound/i] && !@name[/inbound/i]
+    edi_name[/outbound/i] && !edi_name[/inbound/i]
   end
 
   def generate_attributes
+    @attributes ||= []
     @args[1..-1].each do |arg|
       # name => type
       @attributes << Rails::Generator::GeneratedAttribute.new(*arg.split(":")) if arg.include? ":"

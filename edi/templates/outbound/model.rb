@@ -8,19 +8,19 @@ module <%= namespace.modulize %>
     end
 <% end %>
 
-<% if edi_source %>
-    belongs_to :<%= edi_source %>, :foreign_key => :source_id
+<% if edi_for %>
+    belongs_to :<%= edi_for %>, :foreign_key => :source_id
 
     def source
-      self.<%= edi_source %>
+      self.<%= edi_for %>
     end
 
     def self.view_model
-      "<%= edi_source.pluralize %>"
+      "<%= edi_for.pluralize %>"
     end
 
     def self.label_name
-      "<%= edi_source.titleize %> -> EDI <%= edi_code %>"
+      "<%= edi_for.titleize %> -> EDI <%= edi_code %>"
     end
 
     def self.dropdown_name
