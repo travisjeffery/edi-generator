@@ -1,5 +1,3 @@
-$VERBOSE = nil
-
 class EdiGenerator < Rails::Generator::NamedBase
   CONTROLLER_ACTIONS = [:show, :index]
 
@@ -136,6 +134,7 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
 
   def attribute_value attribute
     attribute = (@attributes.select {|attr| attr.name == attribute}).first
+
     if !attribute.nil?
       attribute.type.to_s
     else
@@ -157,6 +156,7 @@ Inbound: ./script/generate edi ediinbound007 namespace:belvia/hershey/sap genera
 
   def generate_attributes
     @attributes ||= []
+
     @args[1..-1].each do |arg|
       # name => type
       @attributes << Rails::Generator::GeneratedAttribute.new(*arg.split(":")) if arg.include? ":"
@@ -169,4 +169,6 @@ class String
     (self.split('/').map {|mod| mod.camelize}).join('::')
   end
 end
+
+$VERBOSE = nil
 
