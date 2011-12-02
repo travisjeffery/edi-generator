@@ -1,5 +1,5 @@
 module <%= namespace.modulize %>
-  class <%= controller_name.camelize %>< ApiController
+  class <%= controller_filename.camelize %>< ApiController
     include ::Edi::OutboundRequestHandler
 
     protected

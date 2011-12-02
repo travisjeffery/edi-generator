@@ -1,6 +1,6 @@
 require File.expand_path("<%= test_helper_path %>", __FILE__)
 
-class %= namespace.modulize %>::<%= controller_name.camelize %>Test < ActiveSupport::TestCase
+class %= namespace.modulize %>::<%= controller_filename.camelize %>Test < ActiveSupport::TestCase
 
   def setup 
     @edi_xml = nil
